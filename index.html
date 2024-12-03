@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>年齡計算器</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #1a1a1a;
+            font-family: "Microsoft JhengHei", sans-serif;
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container { max-width: 1200px; width: 100%; margin: auto; }
+        .base-window {
+            background: rgba(14, 42, 63, 0.95);
+            border: 1px solid #436279;
+            border-radius: 3px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .header {
+            background: #1c4565;
+            padding: 10px;
+            border: 1px solid #436279;
+            border-radius: 3px;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: clamp(16px, 2vw, 24px);
+            font-weight: 700;
+            text-shadow: 0 0 5px #4a9eff;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            padding: 10px;
+            background: rgba(20, 55, 82, 0.8);
+            border: 1px solid #436279;
+            border-radius: 3px;
+        }
+        .grid-item {
+            background: rgba(67, 98, 121, 0.3);
+            border: 1px solid #436279;
+            padding: 15px;
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            max-width: 200px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #436279;
+            color: #fff;
+            text-align: center;
+            font-size: clamp(16px, 1.5vw, 18px);
+            padding: 5px;
+            border-radius: 4px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #6a8ca8;
+            box-shadow: 0 0 5px #4a9eff;
+        }
+        .label {
+            font-size: clamp(12px, 1.5vw, 16px);
+            color: #8aabcb;
+            margin-bottom: 5px;
+        }
+        .value {
+            font-size: clamp(16px, 2vw, 20px);
+            color: #fff;
+            text-shadow: 0 0 4px #4a9eff;
+        }
+        .result {
+            padding: 15px;
+            background: rgba(20, 55, 82, 0.8);
+            border: 1px solid #436279;
+            border-radius: 3px;
+            margin-top: 15px;
+        }
+        .total {
+            font-size: clamp(24px, 3vw, 32px);
+            color: #4a9eff;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid #436279;
+            border-radius: 5px;
+            margin: 20px 0;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            50% { 
+                transform: scale(1.05);
+                text-shadow: 0 0 20px #4a9eff;
+            }
+        }
+        .current-time {
+            text-align: center;
+            color: #8aabcb;
+            font-size: clamp(14px, 1.5vw, 16px);
+            margin-top: 15px;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .grid { grid-template-columns: 1fr; }
+            input { max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="base-window">
+        <div class="header">年齡計算器</div>
+        <div class="grid">
+            <div class="grid-item">
+                <div class="label">請輸入生日</div>
+                <input type="date" id="birthday" max="">
+            </div>
+        </div>
+        <div class="grid">
+            <div class="grid-item">
+                <div class="label">實歲</div>
+                <div id="actualAge" class="total"></div>
+                <div id="actualDetail" class="value"></div>
+            </div>
+            <div class="grid-item">
+                <div class="label">虛歲</div>
+                <div id="nominalAge" class="total"></div>
+                <div id="nominalDetail" class="value"></div>
+            </div>
+        </div>
+        <div id="currentTime" class="current-time"></div>
+    </div>
+</div>
+<script>
+    document.getElementById('birthday').max = new Date().toISOString().split('T')[0];
+
+    function calculateAge() {
+        var birthday = document.getElementById('birthday').value;
+        if (!birthday) {
+            document.getElementById('actualAge').textContent = "請輸入生日";
+            document.getElementById('nominalAge').textContent = "請輸入生日";
+            document.getElementById('actualDetail').textContent = "";
+            document.getElementById('nominalDetail').textContent = "";
+            return;
+        }
+
+        var birthDate = new Date(birthday);
+        var currentDate = new Date();
+
+        var actualAge = currentDate.getFullYear() - birthDate.getFullYear();
+        var month = currentDate.getMonth() - birthDate.getMonth();
+        
+        if (month < 0 || (month === 0 && currentDate.getDate() < birthDate.getDate())) {
+            actualAge--;
+            month += 12;
+        }
+
+        var days = currentDate.getDate() - birthDate.getDate();
+        if (days < 0) {
+            month--;
+            var lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+            days += lastMonth.getDate();
+        }
+
+        var hours = currentDate.getHours();
+        var minutes = currentDate.getMinutes();
+        var seconds = currentDate.getSeconds();
+
+        var nominalAge = actualAge + 1;
+
+        document.getElementById('actualAge').textContent = `${actualAge} 歲`;
+        document.getElementById('actualDetail').textContent = 
+            `${month} 個月 ${days} 天\n${hours} 時 ${minutes} 分 ${seconds} 秒`;
+
+        document.getElementById('nominalAge').textContent = `${nominalAge} 歲`;
+        document.getElementById('nominalDetail').textContent = 
+            `傳統計算方式（實歲+1）`;
+
+        document.getElementById('currentTime').textContent = 
+            `現在時間: ${currentDate.toLocaleString('zh-TW')}`;
+    }
+
+    document.getElementById('birthday').addEventListener('input', calculateAge);
+    setInterval(calculateAge, 1000);
+</script>
+</body>
+</html>
